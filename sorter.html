@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<head>
+	<style type="text/CSS">
+	#fldLeft    {
+    height: 180px;
+        text-align: center;
+        min-width: 120px;
+        border: 1px solid #000;
+        cursor:pointer;
+    padding:10px;
+
+}
+#fldRight   {
+    height: 180px;
+        text-align: center;
+    padding:10px;
+        min-width: 120px;
+        border: 1px solid #000;
+        cursor:pointer;
+    
+}
+</style>
+</head>
+<script type="text/javascript">
+	var alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
+	var alphascore = new Object();
+	
+	var sort = [alphabet];
+	var rounds = 0; // number of times sort has been remade
+	var matches = 0; // number of matchups
+	
+	var tier = 0; // x value
+	var index = 0; // y value
+	
+	function startup(){
+		for (i in alphabet){
+			alphascore[alphabet[i]] = 0;
+		}
+	}
+	
+	function fnc_Sort(selected){
+		matches ++;
+		var scored = "a";
+		if (selected == 1){//left
+			scored = sort[tier][index];
+		} else {//right
+			scored = sort[tier][index+1];
+		}
+		
+		alphascore[scored] ++; 
+		index = index + 2; //move to next pair
+		
+		if (atEndOfLine()){
+			index = 0;
+			tier ++;
+			if (tier > rounds){
+				reset_rows();
+			}
+		}
+		console.log(scored + ", " + alphascore[scored]);
+	}
+	
+	function atEndOfLine(){
+		return sort[tier].length <= index + 2;
+	}
+	
+	function reset_rows(){
+		rounds ++;
+		index = 0;
+		tier = 0; 
+		sort = [];
+		for(var i = 0; i < rounds+1; i++){
+			sort.push(new Array());
+		}
+		for (i in alphabet){
+			var newTier = alphascore[alphabet[i]];
+			sort[newTier].push(alphabet[i])
+		}
+		console.log(sort);
+		console.log(matches + " matches");
+	}
+	
+</script>
+<body onLoad="startup()">
+
+	<table>
+		<tr>
+			<td id="fldLeft" onClick="fnc_Sort(1);"> Left</td>
+			<td id="fldRight" onClick="fnc_Sort(-1);"> Right</td>
+		</tr>
+	</table>
+
+</body>
