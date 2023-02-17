@@ -26,10 +26,10 @@
 </head>
 <script type="text/javascript">
 	var data = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
-	var dataScores = new Object();
 	
-	var sort = [data];
 	var rounds = 0; // number of times we've iterated through all the data
+	var startSort = [];
+	var endSort = [];
 	
 	// iterates through data
 	var tier = 0; // x value
@@ -39,83 +39,95 @@
 	var matches = 0; // number of matchups
 	var left;
 	var right;
+	var oddsNends = false;
 	
-	// initialize all scores to zero
+	// initialize everything
 	function startup(){
-		for (i in data){
-			dataScores[data[i]] = 0;
-		}
+		startSort = [data];
+		endSort = [[],[]];
+		console.log("Startup complete.");
 		setupMatch();
 	}
 
+	// display current match on screen
 	function setupMatch(){
-		left = sort[tier][index];
-		right = sort[tier][index + 1];
-		while (right == null) {
-			nextRow();
-			left = sort[tier][index];
-			right = sort[tier][index + 1];
+		left = startSort[tier][index];
+		right = startSort[tier][index + 1];
+		// if we have an odd number of elements, reuse one from the last match
+		if (right == null && !isDone()) {
+			right = startSort[tier][index - 1];
+			oddsNends = true;
 		}
+		//update html
 		document.getElementById('fldLeft').innerHTML = left;
 		document.getElementById('fldRight').innerHTML = right;
-		checkDone();
+		isDone();
 	}
 
-	function checkDone(){
-		if (rounds >= data.length){
+	// check if the sort has completed and wrap up if so
+	function isDone(){
+		if (startSort.length >= data.length){
 			document.getElementById('fldLeft').innerHTML = "you";
 			document.getElementById('fldRight').innerHTML = "done";
 			document.getElementById('fldLeft').onclick = null;
 			document.getElementById('fldRight').onclick = null;
+			return true;
 		}
+		return false;
 	}
 
-	function fnc_Sort(selected){
-		matches ++;
-		var scored = "a";
-		if (selected == 1){//left
-			scored = sort[tier][index];
-		} else {//right
-			scored = sort[tier][index+1];
+	// return match result
+	function fnc_Sort(choice){
+		matches++;
+
+		var winIndex = tier*2;
+		// tier to move result to 
+		var leftResult = (choice == 1? winIndex : winIndex + 1);
+		var rightResult = (choice == -1? winIndex : winIndex + 1);
+
+		endSort[leftResult].push(left);
+		if (!oddsNends) { // only push if this wasn't an odd number rematch
+			endSort[rightResult].push(right);
+		} else {
+			oddsNends = false;
 		}
-		
-		dataScores[scored] ++; 
+
 		index = index + 2; //move to next pair
-		
 		if (atEndOfLine()){
 			nextRow();
 		}
 		setupMatch();
-		console.log(scored + ", " + dataScores[scored]);
 	}
 
-	
+
 	function atEndOfLine(){
-		return sort[tier].length <= index + 2;
+		return startSort[tier].length == 1
+			|| startSort[tier].length - index < 1;
 	}
 
 	function nextRow(){
-		index = 0;
+		index = 0; // restart at first index of next tier
 		tier ++;
-		if (tier > rounds){
+		if (tier > startSort.length - 1){ // if we've run out of tiers to sort
 			resetRows();
+		} else if (startSort[tier].length == 1){ // if this tier does not need sorting
+			endSort[tier*2].push(startSort[tier][0]); // transfer the sorted item
+			nextRow();// try again
 		}
 	}
-	
+
 	function resetRows(){
 		rounds ++;
 		index = 0;
-		tier = 0; 
-		sort = [];
-		for(var i = 0; i < rounds+1; i++){
-			sort.push(new Array());
+		tier = 0;
+		startSort = endSort;
+		endSort = [];
+		var buckets = Math.pow(2,rounds + 1);
+		for (var i = 0; i < buckets; i++){
+			endSort.push(new Array());
 		}
-		for (i in data){
-			var newTier = dataScores[data[i]];
-			sort[newTier].push(data[i])
-		}
-		console.log(sort);
-		console.log(matches + " matches");
+		console.log(startSort);
+		console.log(buckets + " lines in new array");
 	}
 	
 </script>
