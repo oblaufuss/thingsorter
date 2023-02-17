@@ -4,7 +4,7 @@
 		body{
 			background-color: grey;
 		}
-		#fldLeft    {
+		#leftOption    {
 			height: 180px;
 			text-align: center;
 			min-width: 120px;
@@ -13,7 +13,7 @@
 			padding:10px;
 
 		}
-		#fldRight   {
+		#rightOption   {
 			height: 180px;
 			text-align: center;
 			padding:10px;
@@ -28,8 +28,8 @@
 	var data = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
 	
 	var rounds = 0; // number of times we've iterated through all the data
-	var startSort = [];
-	var endSort = [];
+	var startSort; // data state at the start of the round
+	var endSort; // data state at the end of the round
 	
 	// iterates through data
 	var tier = 0; // x value
@@ -37,6 +37,7 @@
 
 	// for specific matchups
 	var matches = 0; // number of matchups
+	var expectedMatches;
 	var left;
 	var right;
 	var oddsNends = false;
@@ -44,9 +45,16 @@
 	// initialize everything
 	function startup(){
 		startSort = [data];
-		endSort = [[],[]];
-		console.log("Startup complete.");
-		setupMatch();
+		endSort = [[],[]]; // first two brackets: win and lose
+		expectedMatches = Math.round(data.length * Math.log2(data.length) / 2);
+		document.getElementById('total').innerHTML = expectedMatches;
+
+		if (startSort[0].length < 2){
+			console.log("How am I supposed to sort this?");
+		} else {
+			console.log("Startup complete.");
+			setupMatch();
+		}
 	}
 
 	// display current match on screen
@@ -54,26 +62,35 @@
 		left = startSort[tier][index];
 		right = startSort[tier][index + 1];
 		// if we have an odd number of elements, reuse one from the last match
-		if (right == null && !isDone()) {
+		if (right == null) {
 			right = startSort[tier][index - 1];
+			expectedMatches = expectedMatches + 0.5;
 			oddsNends = true;
 		}
 		//update html
-		document.getElementById('fldLeft').innerHTML = left;
-		document.getElementById('fldRight').innerHTML = right;
+		document.getElementById('leftOption').innerHTML = left;
+		document.getElementById('rightOption').innerHTML = right;
+		var pctDone = Math.round(100 * matches / expectedMatches);
+		//document.getElementById('progress').innerHTML = pctDone + "%";
 		isDone();
 	}
 
 	// check if the sort has completed and wrap up if so
 	function isDone(){
 		if (startSort.length >= data.length){
-			document.getElementById('fldLeft').innerHTML = "you";
-			document.getElementById('fldRight').innerHTML = "done";
-			document.getElementById('fldLeft').onclick = null;
-			document.getElementById('fldRight').onclick = null;
+			displayResults();
 			return true;
 		}
 		return false;
+	}
+
+	function displayResults(){
+		console.log("Expected: "+expectedMatches + " Actual: " + matches);
+		document.getElementById('leftOption').innerHTML = "you";
+		document.getElementById('rightOption').innerHTML = "done";
+		document.getElementById('leftOption').onclick = null;
+		document.getElementById('rightOption').onclick = null;
+		// for (tier in )
 	}
 
 	// return match result
@@ -109,34 +126,40 @@
 		index = 0; // restart at first index of next tier
 		tier ++;
 		if (tier > startSort.length - 1){ // if we've run out of tiers to sort
-			resetRows();
+			nextRound();
 		} else if (startSort[tier].length == 1){ // if this tier does not need sorting
 			endSort[tier*2].push(startSort[tier][0]); // transfer the sorted item
 			nextRow();// try again
 		}
 	}
 
-	function resetRows(){
+	function nextRound(){
 		rounds ++;
-		index = 0;
-		tier = 0;
-		startSort = endSort;
-		endSort = [];
-		var buckets = Math.pow(2,rounds + 1);
-		for (var i = 0; i < buckets; i++){
-			endSort.push(new Array());
+		if (tier >= data.length){
+			displayResults();
+		} else {
+			index = 0;
+			tier = 0;
+			startSort = endSort;
+			endSort = [];
+			var newTiers = Math.pow(2,rounds + 1);
+			for (var i = 0; i < newTiers; i++){
+				endSort.push(new Array());
+			}
+			console.log(startSort);
+			console.log(newTiers + " lines in new array");
 		}
-		console.log(startSort);
-		console.log(buckets + " lines in new array");
 	}
 	
 </script>
 <body onLoad="startup()">
 
+	<p id="progress">Expected matches: <span id="total">0</span></p>
+
 	<table>
 		<tr>
-			<td id="fldLeft" onClick="fnc_Sort(1);"> Left</td>
-			<td id="fldRight" onClick="fnc_Sort(-1);"> Right</td>
+			<td id="leftOption" onClick="fnc_Sort(1);"> Left</td>
+			<td id="rightOption" onClick="fnc_Sort(-1);"> Right</td>
 		</tr>
 	</table>
 
