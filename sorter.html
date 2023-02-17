@@ -1,43 +1,75 @@
 <!DOCTYPE html>
 <head>
 	<style type="text/CSS">
-	#fldLeft    {
-    height: 180px;
-        text-align: center;
-        min-width: 120px;
-        border: 1px solid #000;
-        cursor:pointer;
-    padding:10px;
+		body{
+			background-color: grey;
+		}
+		#fldLeft    {
+			height: 180px;
+			text-align: center;
+			min-width: 120px;
+			border: 1px solid #000;
+			cursor:pointer;
+			padding:10px;
 
-}
-#fldRight   {
-    height: 180px;
-        text-align: center;
-    padding:10px;
-        min-width: 120px;
-        border: 1px solid #000;
-        cursor:pointer;
-    
-}
-</style>
+		}
+		#fldRight   {
+			height: 180px;
+			text-align: center;
+			padding:10px;
+			min-width: 120px;
+			border: 1px solid #000;
+			cursor:pointer;
+
+		}
+	</style>
 </head>
 <script type="text/javascript">
-	var alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
-	var alphascore = new Object();
+	var data = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"];
+	var dataScores = new Object();
 	
-	var sort = [alphabet];
-	var rounds = 0; // number of times sort has been remade
-	var matches = 0; // number of matchups
+	var sort = [data];
+	var rounds = 0; // number of times we've iterated through all the data
 	
+	// iterates through data
 	var tier = 0; // x value
 	var index = 0; // y value
+
+	// for specific matchups
+	var matches = 0; // number of matchups
+	var left;
+	var right;
 	
+	// initialize all scores to zero
 	function startup(){
-		for (i in alphabet){
-			alphascore[alphabet[i]] = 0;
+		for (i in data){
+			dataScores[data[i]] = 0;
+		}
+		setupMatch();
+	}
+
+	function setupMatch(){
+		left = sort[tier][index];
+		right = sort[tier][index + 1];
+		while (right == null) {
+			nextRow();
+			left = sort[tier][index];
+			right = sort[tier][index + 1];
+		}
+		document.getElementById('fldLeft').innerHTML = left;
+		document.getElementById('fldRight').innerHTML = right;
+		checkDone();
+	}
+
+	function checkDone(){
+		if (rounds >= data.length){
+			document.getElementById('fldLeft').innerHTML = "you";
+			document.getElementById('fldRight').innerHTML = "done";
+			document.getElementById('fldLeft').onclick = null;
+			document.getElementById('fldRight').onclick = null;
 		}
 	}
-	
+
 	function fnc_Sort(selected){
 		matches ++;
 		var scored = "a";
@@ -47,24 +79,30 @@
 			scored = sort[tier][index+1];
 		}
 		
-		alphascore[scored] ++; 
+		dataScores[scored] ++; 
 		index = index + 2; //move to next pair
 		
 		if (atEndOfLine()){
-			index = 0;
-			tier ++;
-			if (tier > rounds){
-				reset_rows();
-			}
+			nextRow();
 		}
-		console.log(scored + ", " + alphascore[scored]);
+		setupMatch();
+		console.log(scored + ", " + dataScores[scored]);
 	}
+
 	
 	function atEndOfLine(){
 		return sort[tier].length <= index + 2;
 	}
+
+	function nextRow(){
+		index = 0;
+		tier ++;
+		if (tier > rounds){
+			resetRows();
+		}
+	}
 	
-	function reset_rows(){
+	function resetRows(){
 		rounds ++;
 		index = 0;
 		tier = 0; 
@@ -72,9 +110,9 @@
 		for(var i = 0; i < rounds+1; i++){
 			sort.push(new Array());
 		}
-		for (i in alphabet){
-			var newTier = alphascore[alphabet[i]];
-			sort[newTier].push(alphabet[i])
+		for (i in data){
+			var newTier = dataScores[data[i]];
+			sort[newTier].push(data[i])
 		}
 		console.log(sort);
 		console.log(matches + " matches");
